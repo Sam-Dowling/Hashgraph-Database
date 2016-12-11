@@ -1,19 +1,22 @@
 package main
 
-import "os"
+import (
+	"os"
+	"time"
+)
 
 func main() {
 
 	if len(os.Args) > 1 {
-		GloblConfig = ReadConfig(os.Args[1])
+		GlobalConfig = ReadConfig(os.Args[1])
 	}
 
-	//go StartListening()
+	go StartListening()
 
-	// for {
-	// 	time.Sleep(time.Second * 2)
-	//
-	// 	Gossip()
-	// }
+	for {
+		time.Sleep(time.Second * 5)
+
+		Gossip()
+	}
 
 }

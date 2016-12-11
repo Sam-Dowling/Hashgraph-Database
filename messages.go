@@ -5,23 +5,11 @@ import (
 	"fmt"
 )
 
-/*
-
-Request Peer Data : 102
-Peer Data         : 103
-
-
-*/
-
 type Message struct {
 	Sender    Peer
-	Code      int
+	code      int
 	data      string
 	PeerCount int
-}
-
-func createGossip(msg string) string {
-	return
 }
 
 func (m Message) MessagetoJson() string {

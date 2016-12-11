@@ -12,7 +12,7 @@ type Config struct {
 	Port int
 }
 
-var GloblConfig = ReadConfig("config.toml")
+var GlobalConfig = ReadConfig("config.toml")
 
 // Reads info from config file
 func ReadConfig(configfile string) Config {

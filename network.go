@@ -8,7 +8,7 @@ import (
 )
 
 func StartListening() {
-	ln, _ := net.Listen("tcp", ":"+GloblConfig.Port)
+	ln, _ := net.Listen("tcp", string(GlobalConfig.Port))
 
 	for {
 		conn, err := ln.Accept()
@@ -36,6 +36,5 @@ func sendMessage(msg Message, p Peer) {
 }
 
 func Gossip() {
-	//msg := create
-	//sendMessage(msg, GetRandomPeer())
+	sendMessage("Gossip", GetRandomPeer())
 }
