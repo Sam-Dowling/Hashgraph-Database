@@ -1,40 +1,46 @@
 package main
 
 import (
-	"bufio"
 	"encoding/gob"
 	"fmt"
 	"net"
+	"strconv"
 )
 
 func StartListening() {
-	ln, _ := net.Listen("tcp", string(GlobalConfig.Port))
-
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			continue
+	ln, err := net.Listen("tcp", ":"+strconv.Itoa(GlobalConfig.Port))
+	if err == nil {
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				continue
+			}
+			go handleConn(conn)
 		}
-		go handleConn(conn)
 	}
+	fmt.Println("Shutting Down")
+
 }
 
 func handleConn(conn net.Conn) {
-	message, _ := bufio.NewReader(conn).ReadString('\n')
+	dec := gob.NewDecoder(conn)
+	p := &Message{}
+	dec.Decode(p)
+
 	address := conn.RemoteAddr().String()
-	fmt.Print(address, "> ", string(message))
+	fmt.Println(address, " > ", p)
 	conn.Close()
 }
 
 func sendMessage(msg Message, p Peer) {
 	conn, err := net.Dial("tcp", p.String())
 	if err == nil {
-		enc := gob.NewEncoder(conn)
-		enc.Encode(msg)
+		encoder := gob.NewEncoder(conn)
+		encoder.Encode(&msg)
 		conn.Close()
 	}
 }
 
 func Gossip() {
-	sendMessage("Gossip", GetRandomPeer())
+	sendMessage(Message{5, "Hello"}, GetRandomPeer())
 }

@@ -11,10 +11,12 @@ func main() {
 		GlobalConfig = ReadConfig(os.Args[1])
 	}
 
+	AddPeer(Peer{"127.0.0.1", 9000})
+
 	go StartListening()
 
-	for {
-		time.Sleep(time.Second * 5)
+	for i := 0; i < 3; i++ {
+		time.Sleep(time.Second * 2)
 
 		Gossip()
 	}
