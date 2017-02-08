@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 )
@@ -11,14 +12,17 @@ func main() {
 		GlobalConfig = ReadConfig(os.Args[1])
 	}
 
-	AddPeer(Peer{"127.0.0.1", 9000})
+	fmt.Println("STARTING: ", GlobalConfig.Port)
+	fmt.Println(PeerList)
 
 	go StartListening()
 
-	for i := 0; i < 3; i++ {
-		time.Sleep(time.Second * 2)
+	for i := 0; i < 50; i++ {
+		time.Sleep(time.Second * 1)
 
 		Gossip()
+		PeerExchange()
 	}
+	fmt.Println(PeerList)
 
 }

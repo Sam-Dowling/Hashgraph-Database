@@ -24,11 +24,20 @@ func StartListening() {
 
 func handleConn(conn net.Conn) {
 	dec := gob.NewDecoder(conn)
-	p := &Message{}
-	dec.Decode(p)
+	data := &Message{}
+	dec.Decode(data)
 
-	address := conn.RemoteAddr().String()
-	fmt.Println(address, " > ", p)
+	switch data.Code {
+	case 0:
+		peerList := data.Data.(PeerData)
+		for _, peer := range peerList.Peers {
+			AddPeer(peer)
+		}
+	case 1:
+		message := data.Data.(TransactionData)
+		fmt.Println(message.Transaction)
+	}
+
 	conn.Close()
 }
 
@@ -36,11 +45,21 @@ func sendMessage(msg Message, p Peer) {
 	conn, err := net.Dial("tcp", p.String())
 	if err == nil {
 		encoder := gob.NewEncoder(conn)
+		switch msg.Code {
+		case 0:
+			gob.Register(PeerData{})
+		case 1:
+			gob.Register(TransactionData{})
+		}
 		encoder.Encode(&msg)
 		conn.Close()
 	}
 }
 
+func PeerExchange() {
+	sendMessage(Message{0, PeerData{PeerList}}, GetRandomPeer())
+}
+
 func Gossip() {
-	sendMessage(Message{5, "Hello"}, GetRandomPeer())
+	sendMessage(Message{1, TransactionData{strconv.Itoa(GlobalConfig.Port)}}, GetRandomPeer())
 }

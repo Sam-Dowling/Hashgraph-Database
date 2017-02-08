@@ -10,7 +10,7 @@ type Peer struct {
 	Port int
 }
 
-var Peers = []Peer{}
+var PeerList = []Peer{}
 
 func (p Peer) String() string {
 	return fmt.Sprintf("%s:%d", p.IP, p.Port)
@@ -18,20 +18,20 @@ func (p Peer) String() string {
 
 func AddPeer(p Peer) {
 	if !IsKnownPeer(p) {
-		Peers = append(Peers, p)
+		PeerList = append(PeerList, p)
 	}
 }
 
 func GetRandomPeer() Peer {
-	return Peers[rand.Intn(len(Peers))]
+	return PeerList[rand.Intn(len(PeerList))]
 }
 
 func GetPeerCount() int {
-	return len(Peers)
+	return len(PeerList)
 }
 
 func IsKnownPeer(p Peer) bool {
-	for _, peer := range Peers {
+	for _, peer := range PeerList {
 		if p == peer {
 			return true
 		}

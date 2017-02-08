@@ -2,9 +2,13 @@ package main
 
 type Message struct {
 	Code int64
-	Data string
+	Data interface{}
 }
 
 type PeerData struct {
 	Peers []Peer
+}
+
+type TransactionData struct {
+	Transaction string
 }

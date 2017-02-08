@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	IP   string
-	Port int
+	IP    string
+	Port  int
+	Peers []Peer
 }
 
 var GlobalConfig = ReadConfig("config.toml")
@@ -24,6 +25,10 @@ func ReadConfig(configfile string) Config {
 	var config Config
 	if _, err := toml.DecodeFile(configfile, &config); err != nil {
 		log.Fatal(err)
+	}
+	AddPeer(Peer{config.IP, config.Port})
+	for _, peer := range config.Peers {
+		AddPeer(peer)
 	}
 	return config
 }
