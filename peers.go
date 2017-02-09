@@ -23,14 +23,17 @@ func AddPeer(p Peer) {
 }
 
 func GetRandomPeer() Peer {
-	return PeerList[rand.Intn(len(PeerList))]
-}
-
-func GetPeerCount() int {
-	return len(PeerList)
+	length := len(PeerList)
+	if length > 0 {
+		return PeerList[rand.Intn(length)]
+	}
+	return Peer{}
 }
 
 func IsKnownPeer(p Peer) bool {
+	if p == (Peer{GlobalConfig.IP, GlobalConfig.Port}) {
+		return true
+	}
 	for _, peer := range PeerList {
 		if p == peer {
 			return true

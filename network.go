@@ -29,13 +29,18 @@ func handleConn(conn net.Conn) {
 
 	switch data.Code {
 	case 0:
-		peerList := data.Data.(PeerData)
-		for _, peer := range peerList.Peers {
-			AddPeer(peer)
+		peerList, ok := data.Data.(PeerData)
+		if ok {
+			for _, peer := range peerList.Peers {
+				AddPeer(peer)
+			}
 		}
+
 	case 1:
-		message := data.Data.(TransactionData)
-		fmt.Println(message.Transaction)
+		message, ok := data.Data.(TransactionData)
+		if ok {
+			fmt.Println(message.Transaction)
+		}
 	}
 
 	conn.Close()
@@ -57,9 +62,16 @@ func sendMessage(msg Message, p Peer) {
 }
 
 func PeerExchange() {
-	sendMessage(Message{0, PeerData{PeerList}}, GetRandomPeer())
+	p := GetRandomPeer()
+	if p != (Peer{}) {
+		Peers := append(PeerList, Peer{GlobalConfig.IP, GlobalConfig.Port})
+		sendMessage(Message{0, PeerData{Peers}}, p)
+	}
 }
 
 func Gossip() {
-	sendMessage(Message{1, TransactionData{strconv.Itoa(GlobalConfig.Port)}}, GetRandomPeer())
+	p := GetRandomPeer()
+	if p != (Peer{}) {
+		sendMessage(Message{1, TransactionData{strconv.Itoa(GlobalConfig.Port)}}, p)
+	}
 }

@@ -2,27 +2,25 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 )
 
 func main() {
 
-	if len(os.Args) > 1 {
-		GlobalConfig = ReadConfig(os.Args[1])
-	}
+	ReadConfig()
 
 	fmt.Println("STARTING: ", GlobalConfig.Port)
 	fmt.Println(PeerList)
 
 	go StartListening()
 
-	for i := 0; i < 50; i++ {
-		time.Sleep(time.Second * 1)
+	for i := 0; i < 15; i++ {
+		time.Sleep(time.Second * 2)
 
 		Gossip()
 		PeerExchange()
 	}
 	fmt.Println(PeerList)
+	SaveConfig()
 
 }

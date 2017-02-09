@@ -13,22 +13,44 @@ type Config struct {
 	Peers []Peer
 }
 
-var GlobalConfig = ReadConfig("config.toml")
+var ConfigFile = "config.toml"
+
+var GlobalConfig = Config{}
+
+func VerifyConfigFile(filename string) {
+	_, err := os.Stat(ConfigFile)
+	if err != nil {
+		log.Fatal("Config file is missing: ", filename)
+	} else {
+		ConfigFile = filename
+	}
+}
 
 // Reads info from config file
-func ReadConfig(configfile string) Config {
-	_, err := os.Stat(configfile)
-	if err != nil {
-		log.Fatal("Config file is missing: ", configfile)
-	}
+func ReadConfig() {
 
-	var config Config
-	if _, err := toml.DecodeFile(configfile, &config); err != nil {
+	if len(os.Args) > 1 {
+		VerifyConfigFile(os.Args[1])
+	} else {
+		VerifyConfigFile(ConfigFile)
+	}
+	if _, err := toml.DecodeFile(ConfigFile, &GlobalConfig); err != nil {
 		log.Fatal(err)
 	}
-	AddPeer(Peer{config.IP, config.Port})
-	for _, peer := range config.Peers {
+
+	for _, peer := range GlobalConfig.Peers {
 		AddPeer(peer)
 	}
-	return config
+}
+
+func SaveConfig() {
+	GlobalConfig.Peers = PeerList
+
+	file, err := os.Create(ConfigFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	encoder := toml.NewEncoder(file)
+	encoder.Encode(&GlobalConfig)
+	file.Close()
 }
