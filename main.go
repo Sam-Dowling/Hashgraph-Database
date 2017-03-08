@@ -18,9 +18,7 @@ func main() {
 		time.Sleep(time.Second * 2)
 
 		Gossip()
-		PeerExchange()
+		// PeerExchange()
 	}
-	fmt.Println(PeerList)
 	SaveConfig()
-
 }

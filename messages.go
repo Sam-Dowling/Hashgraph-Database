@@ -1,14 +1,22 @@
 package main
 
+/*
+Code
+
+0 : event sync -> event count
+1 : events list
+
+*/
+
 type Message struct {
 	Code int64
 	Data interface{}
 }
 
-type PeerData struct {
-	Peers []Peer
+type EventCount struct {
+	Count []int
 }
 
-type TransactionData struct {
-	Transaction string
+type Events struct {
+	Events []Event
 }

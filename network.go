@@ -19,7 +19,6 @@ func StartListening() {
 		}
 	}
 	fmt.Println("Shutting Down")
-
 }
 
 func handleConn(conn net.Conn) {
@@ -29,20 +28,19 @@ func handleConn(conn net.Conn) {
 
 	switch data.Code {
 	case 0:
-		peerList, ok := data.Data.(PeerData)
+		message, ok := data.Data.(EventCount)
 		if ok {
-			for _, peer := range peerList.Peers {
-				AddPeer(peer)
-			}
+			//Debug
+			fmt.Println(message.Transaction)
 		}
 
 	case 1:
-		message, ok := data.Data.(TransactionData)
+		message, ok := data.Data.(Events)
 		if ok {
+			//Debug
 			fmt.Println(message.Transaction)
 		}
 	}
-
 	conn.Close()
 }
 
@@ -51,27 +49,23 @@ func sendMessage(msg Message, p Peer) {
 	if err == nil {
 		encoder := gob.NewEncoder(conn)
 		switch msg.Code {
-		case 0:
-			gob.Register(PeerData{})
-		case 1:
-			gob.Register(TransactionData{})
+		case 0: //Gossip event counts
+			gob.Register(EventCount{})
+		case 1: //Events
+			gob.Register(Events{})
 		}
 		encoder.Encode(&msg)
 		conn.Close()
 	}
 }
 
-func PeerExchange() {
-	p := GetRandomPeer()
-	if p != (Peer{}) {
-		Peers := append(PeerList, Peer{GlobalConfig.IP, GlobalConfig.Port})
-		sendMessage(Message{0, PeerData{Peers}}, p)
-	}
-}
-
 func Gossip() {
 	p := GetRandomPeer()
 	if p != (Peer{}) {
-		sendMessage(Message{1, TransactionData{strconv.Itoa(GlobalConfig.Port)}}, p)
+		sendMessage(Message{0, getEventCounts()}, p)
 	}
+}
+
+func sendEvents(int count, p Peer) {
+	sendMessage(Message{1, Events{}}, p)
 }
