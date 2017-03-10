@@ -1,28 +1,31 @@
 package main
 
 import (
+	"crypto/ecdsa"
 	"log"
 	"os"
 
 	"github.com/BurntSushi/toml"
 )
 
-type Config struct {
-	IP    string
-	Port  int
-	Peers []Peer
+type config struct {
+	ID         int
+	IP         string
+	Port       int
+	PrivateKey ecdsa.PrivateKey
+	Network    []Peer
 }
 
-var ConfigFile = "config.toml"
+var configFile = "config.toml"
 
-var GlobalConfig = Config{}
+var GlobalConfig = config{}
 
 func VerifyConfigFile(filename string) {
-	_, err := os.Stat(ConfigFile)
+	_, err := os.Stat(configFile)
 	if err != nil {
 		log.Fatal("Config file is missing: ", filename)
 	} else {
-		ConfigFile = filename
+		configFile = filename
 	}
 }
 
@@ -32,21 +35,20 @@ func ReadConfig() {
 	if len(os.Args) > 1 {
 		VerifyConfigFile(os.Args[1])
 	} else {
-		VerifyConfigFile(ConfigFile)
+		VerifyConfigFile(configFile)
 	}
-	if _, err := toml.DecodeFile(ConfigFile, &GlobalConfig); err != nil {
+	if _, err := toml.DecodeFile(configFile, &GlobalConfig); err != nil {
 		log.Fatal(err)
 	}
-
-	for _, peer := range GlobalConfig.Peers {
+	for _, peer := range GlobalConfig.Network {
 		AddPeer(peer)
 	}
 }
 
 func SaveConfig() {
-	GlobalConfig.Peers = PeerList
+	GlobalConfig.Network = Network
 
-	file, err := os.Create(ConfigFile)
+	file, err := os.Create(configFile)
 	if err != nil {
 		log.Fatal(err)
 	}

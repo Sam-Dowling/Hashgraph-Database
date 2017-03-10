@@ -1,11 +1,51 @@
 package main
 
 import (
+	"crypto/ecdsa"
 	"encoding/gob"
 	"fmt"
+	"math/rand"
 	"net"
 	"strconv"
 )
+
+type Peer struct {
+	ID        int
+	IP        string
+	Port      int
+	PublicKey ecdsa.PublicKey
+}
+
+type Message struct {
+	Code int64
+	Data interface{}
+}
+
+type EventCount struct {
+	Count []int
+}
+
+type Events struct {
+	Events []Event
+}
+
+var Network = []Peer{}
+
+func (p Peer) String() string {
+	return fmt.Sprintf("%s:%d", p.IP, p.Port)
+}
+
+func AddPeer(p Peer) {
+	Network = append(Network, p)
+}
+
+func GetRandomPeer() Peer {
+	length := len(Network)
+	if length > 0 {
+		return Network[rand.Intn(length)]
+	}
+	return Peer{}
+}
 
 func StartListening() {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(GlobalConfig.Port))
@@ -50,7 +90,7 @@ func sendMessage(msg Message, p Peer) {
 		encoder := gob.NewEncoder(conn)
 		switch msg.Code {
 		case 0: //Gossip event counts
-			gob.Register(EventCount{})
+			gob.Register()
 		case 1: //Events
 			gob.Register(Events{})
 		}
