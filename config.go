@@ -52,7 +52,7 @@ func ReadConfig() {
 
 	priv, err := x509.ParsePKCS1PrivateKey(GlobalConfig.PrivateKeyBytes)
 	if err != nil {
-		//log.Fatal("Error parsing PrivateKey: ", err)
+		//no key present? generate one
 		priv = GenKey()
 	}
 	PrivateKey = priv

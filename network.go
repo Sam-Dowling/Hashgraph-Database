@@ -17,8 +17,6 @@ code : struct - description
 
 1 : EventCount - request Events EventCount
 	<- 2 : Events - last n Events from each node defined in 1:EventCount
-
-3 : Peer - handshake
 */
 
 type Peer struct {
@@ -28,8 +26,9 @@ type Peer struct {
 }
 
 type Message struct {
-	Code int
-	Data interface{}
+	Address Peer
+	Code    int
+	Data    interface{}
 }
 
 type EventCount struct {
@@ -37,10 +36,10 @@ type EventCount struct {
 }
 
 type Events struct {
-	Events map[string]Event
+	EventList map[string]Event
 }
 
-var Network = map[string]Peer{}
+var Network = make(map[string]Peer)
 
 func (p Peer) toString() string {
 	return fmt.Sprintf("%s:%d", p.IP, p.Port)
@@ -82,27 +81,33 @@ func handleConn(conn net.Conn) {
 	data := &Message{}
 	dec.Decode(data)
 
+	AddPeer(data.Address)
+
 	switch data.Code {
 	case 0: // 0 : EventCount - Gossip EventCount
 		message, ok := data.Data.(EventCount)
 		if ok {
-			fmt.Println(message.Count)
+			request := CalcEventsToRequest(message.Count)
+			sendMessage(Message{Self, 1, EventCount{request}}, data.Address)
 		}
 		break
 
 	case 1: // 1 : EventCount - request Events EventCount
 		message, ok := data.Data.(EventCount)
 		if ok {
-			//Debug
-			fmt.Println(message.Count)
+			e := CollectEventsToSend(message.Count)
+
+			sendMessage(Message{Self, 2, Events{e}}, data.Address)
 		}
 		break
 
 	case 2: // 2 : Events - last n Events from each node defined in 1:EventCount
 		message, ok := data.Data.(Events)
+		fmt.Println("Received Events")
 		if ok {
-			//Debug
-			fmt.Println(message.Events)
+			fmt.Println(message)
+			//TODO
+			// Verify Signature, Add to own hashgraph
 		}
 		break
 	}
@@ -116,10 +121,13 @@ func sendMessage(msg Message, p Peer) {
 		switch msg.Code {
 		case 0: //Gossip event counts
 			gob.Register(EventCount{})
+			break
 		case 1: //request event counts
 			gob.Register(EventCount{})
+			break
 		case 2: //Events
 			gob.Register(Events{})
+			break
 		}
 		encoder.Encode(&msg)
 		conn.Close()
@@ -129,6 +137,7 @@ func sendMessage(msg Message, p Peer) {
 func Gossip() {
 	p := GetRandomPeer()
 	if p != (Peer{}) {
-		sendMessage(Message{0, EventCount{}}, p)
+		fmt.Println("Gossiping")
+		sendMessage(Message{Self, 0, EventCount{GetEventCounts()}}, p)
 	}
 }

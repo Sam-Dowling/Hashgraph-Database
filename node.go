@@ -6,47 +6,69 @@ import (
 )
 
 type Transaction struct {
-	timestamp time.Time
-	action    int // 0:create, 1:read, 2:update
-	key       string
-	value     string
+	Timestamp time.Time
+	Action    int // 0:create, 1:read, 2:update
+	Key       string
+	Value     string
 }
 
 type Event struct {
-	creator      string
-	timestamp    time.Time
-	transactions []Transaction
-	selfParent   string
-	otherParent  string
+	Creator      string
+	Timestamp    time.Time
+	Transactions []Transaction
+	SelfParent   string
+	OtherParent  string
 }
 
-var Hashgraph map[string]Event
+var order = make(map[string][]*string)
+
+var Hashgraph = make(map[string]Event)
 var transactions []Transaction
 var head string
 
 func Run() {
-	Hashgraph = make(map[string]Event)
-
-	sig, e := createEvent(nil, "", "")
+	createTransaction(0, "127.0.0.1", "example.com")
+	sig, e := createEvent("0", "0")
 	addEvent(sig, e)
 
-	StartListening()
-	for i := 0; i < 15; i++ {
-		time.Sleep(time.Second * 2)
+	go StartListening()
+
+	for i := 0; i < 5; i++ {
+		time.Sleep(time.Second)
 		Gossip()
 	}
 
-	// createTransaction(0, "127.0.0.1", "example.com")
-	// createTransaction(1, "123.456.789.0", "another.net")
-
 }
 
-func getEventCounts(hg map[string]Event) map[string]int {
+func CollectEventsToSend(eventCounts map[string]int) map[string]Event {
+	e := make(map[string]Event)
+	for k, v := range eventCounts {
+		j := len(order[k]) - v
+		for i := j; i < len(order[k]); i++ {
+			e[*order[k][i]] = Hashgraph[*order[k][i]]
+		}
+	}
+	return e
+}
+
+func GetEventCounts() map[string]int {
 	count := make(map[string]int)
-	for _, v := range hg {
-		count[v.creator]++
+	for _, v := range Hashgraph {
+		count[v.Creator]++
 	}
 	return count
+}
+
+func CalcEventsToRequest(theirCount map[string]int) map[string]int {
+	request := make(map[string]int)
+	ourCount := GetEventCounts()
+
+	for k, v := range theirCount {
+		if ourCount[k] < v {
+			request[k] = v - ourCount[k]
+		}
+	}
+	return request
 }
 
 func (e Event) toString() string {
@@ -57,15 +79,17 @@ func createTransaction(action int, key string, value string) {
 	transactions = append(transactions, Transaction{time.Now(), action, key, value})
 }
 
-func createEvent(trans []Transaction, selfParent string, otherParent string) (string, Event) { // (events signature, event)
-	e := Event{Self.toString(), time.Now(), trans, selfParent, otherParent}
+func createEvent(selfParent string, otherParent string) (string, Event) { // (events signature, event)
+	e := Event{Self.toString(), time.Now(), transactions, selfParent, otherParent}
+	transactions = nil //clear transactions
 	eventStr := e.toString()
 	return CalcSignature(eventStr), e
 }
 
 func addEvent(sig string, e Event) {
-	if e.creator == Self.toString() {
+	if e.Creator == Self.toString() {
 		head = sig
 	}
+	order[e.Creator] = append(order[e.Creator], &sig)
 	Hashgraph[sig] = e
 }
