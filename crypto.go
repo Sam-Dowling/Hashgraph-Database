@@ -19,11 +19,11 @@ func GenKey() *rsa.PrivateKey {
 	return privatekey
 }
 
-func CalcSignature(privKey *rsa.PrivateKey, data string) string {
+func CalcSignature(data string) string {
 	h := sha256.New()
 	h.Write([]byte(data))
 	d := h.Sum(nil)
-	sig, err := rsa.SignPKCS1v15(rand.Reader, privKey, crypto.SHA256, d)
+	sig, err := rsa.SignPKCS1v15(rand.Reader, PrivateKey, crypto.SHA256, d)
 
 	if err != nil {
 		fmt.Println(err)

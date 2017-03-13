@@ -12,16 +12,17 @@ import (
 var PrivateKey *rsa.PrivateKey
 
 type config struct {
-	ID              int
 	IP              string
 	Port            int
 	PrivateKeyBytes []byte
-	Network         []Peer
+	Network         map[string]Peer
 }
 
 var configFile = "config.toml"
 
 var GlobalConfig = config{}
+
+var Self = Peer{}
 
 func VerifyConfigFile(filename string) {
 	_, err := os.Stat(configFile)
@@ -46,12 +47,16 @@ func ReadConfig() {
 	for _, peer := range GlobalConfig.Network {
 		AddPeer(peer)
 	}
+
+	//AddPeer(Self)
+
 	priv, err := x509.ParsePKCS1PrivateKey(GlobalConfig.PrivateKeyBytes)
 	if err != nil {
 		//log.Fatal("Error parsing PrivateKey: ", err)
 		priv = GenKey()
 	}
 	PrivateKey = priv
+	Self = Peer{GlobalConfig.IP, GlobalConfig.Port, PrivateKey.PublicKey}
 }
 
 func SaveConfig() {

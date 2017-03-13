@@ -1,13 +1,13 @@
 package main
 
-func main() {
+import "fmt"
 
+func main() {
 	ReadConfig()
 
-	//node := Node{ID: GlobalConfig.ID, Network: Network}
+	//Run()
 
-	//node.Run()
+	fmt.Println(GetRandomPeer())
 
 	SaveConfig()
-
 }
