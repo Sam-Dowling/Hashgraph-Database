@@ -41,7 +41,7 @@ func AddPeer(p Peer) {
 
 func GetRandomPeer() Peer {
 	length := len(Network)
-	if length > 0 {
+	if length > 0 { // empty Network list
 		return Network[rand.Intn(length)]
 	}
 	return Peer{}
@@ -71,14 +71,14 @@ func handleConn(conn net.Conn) {
 		message, ok := data.Data.(EventCount)
 		if ok {
 			//Debug
-			fmt.Println(message.Transaction)
+			fmt.Println(message.Count)
 		}
 
 	case 1:
 		message, ok := data.Data.(Events)
 		if ok {
 			//Debug
-			fmt.Println(message.Transaction)
+			fmt.Println(message.Events)
 		}
 	}
 	conn.Close()
@@ -90,7 +90,7 @@ func sendMessage(msg Message, p Peer) {
 		encoder := gob.NewEncoder(conn)
 		switch msg.Code {
 		case 0: //Gossip event counts
-			gob.Register()
+			gob.Register(EventCount{})
 		case 1: //Events
 			gob.Register(Events{})
 		}
@@ -102,10 +102,10 @@ func sendMessage(msg Message, p Peer) {
 func Gossip() {
 	p := GetRandomPeer()
 	if p != (Peer{}) {
-		sendMessage(Message{0, getEventCounts()}, p)
+		sendMessage(Message{0, EventCount{}}, p)
 	}
 }
 
-func sendEvents(int count, p Peer) {
+func sendEvents(count EventCount, p Peer) {
 	sendMessage(Message{1, Events{}}, p)
 }

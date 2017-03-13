@@ -1,25 +1,17 @@
 package main
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
+	"crypto"
 	"crypto/rand"
-	"crypto/sha1"
-	"encoding/json"
+	"crypto/rsa"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
-	"io"
-	"math/big"
 	"os"
 )
 
-type signature struct {
-	R *big.Int
-	S *big.Int
-}
-
-func GenKey() *ecdsa.PrivateKey {
-	pubkeyCurve := elliptic.P256()
-	privatekey, err := ecdsa.GenerateKey(pubkeyCurve, rand.Reader)
+func GenKey() *rsa.PrivateKey {
+	privatekey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -27,33 +19,31 @@ func GenKey() *ecdsa.PrivateKey {
 	return privatekey
 }
 
-func CalcSignature(privKey *ecdsa.PrivateKey, data string) string {
+func CalcSignature(privKey *rsa.PrivateKey, data string) string {
+	h := sha256.New()
+	h.Write([]byte(data))
+	d := h.Sum(nil)
+	sig, err := rsa.SignPKCS1v15(rand.Reader, privKey, crypto.SHA256, d)
 
-	h := sha1.New()
-	io.WriteString(h, data)
-	signhash := h.Sum(nil)
-
-	r, s, err := ecdsa.Sign(rand.Reader, privKey, signhash)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	out, err := json.Marshal(signature{r, s})
-	if err != nil {
-		panic(err)
-	}
-	return string(out)
+	return base64.StdEncoding.EncodeToString(sig)
 }
 
-func VerifySignature(s string, pubKey ecdsa.PublicKey, data string) bool {
-	sig := signature{}
-	if err := json.Unmarshal([]byte(s), &sig); err != nil {
-		panic(err)
+func VerifySignature(pubKey rsa.PublicKey, signature string, data string) bool {
+	h := sha256.New()
+	h.Write([]byte(data))
+	d := h.Sum(nil)
+	sigBytes, err := base64.StdEncoding.DecodeString(signature)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
+	ok := rsa.VerifyPKCS1v15(&pubKey, crypto.SHA256, d, sigBytes)
 
-	h := sha1.New()
-	io.WriteString(h, data)
-	signhash := h.Sum(nil)
-	return ecdsa.Verify(&pubKey, signhash, sig.R, sig.S)
+	return ok == nil
+
 }

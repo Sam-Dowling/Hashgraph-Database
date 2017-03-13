@@ -1,19 +1,22 @@
 package main
 
 import (
-	"crypto/ecdsa"
+	"crypto/rsa"
+	"crypto/x509"
 	"log"
 	"os"
 
 	"github.com/BurntSushi/toml"
 )
 
+var PrivateKey *rsa.PrivateKey
+
 type config struct {
-	ID         int
-	IP         string
-	Port       int
-	PrivateKey ecdsa.PrivateKey
-	Network    []Peer
+	ID              int
+	IP              string
+	Port            int
+	PrivateKeyBytes []byte
+	Network         []Peer
 }
 
 var configFile = "config.toml"
@@ -43,6 +46,12 @@ func ReadConfig() {
 	for _, peer := range GlobalConfig.Network {
 		AddPeer(peer)
 	}
+	priv, err := x509.ParsePKCS1PrivateKey(GlobalConfig.PrivateKeyBytes)
+	if err != nil {
+		//log.Fatal("Error parsing PrivateKey: ", err)
+		priv = GenKey()
+	}
+	PrivateKey = priv
 }
 
 func SaveConfig() {
@@ -52,6 +61,9 @@ func SaveConfig() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	GlobalConfig.PrivateKeyBytes = x509.MarshalPKCS1PrivateKey(PrivateKey)
+
 	encoder := toml.NewEncoder(file)
 	encoder.Encode(&GlobalConfig)
 	file.Close()

@@ -1,10 +1,13 @@
 package main
 
 func main() {
-	//ReadConfig()
+
+	ReadConfig()
 
 	//node := Node{ID: GlobalConfig.ID, Network: Network}
 
 	//node.Run()
+
+	SaveConfig()
 
 }
