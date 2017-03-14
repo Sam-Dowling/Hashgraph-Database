@@ -23,7 +23,7 @@ For the system to work, every node must have the same exact copy of the Hashgrap
 
 ### Installing
 
-This project uses Golang. Golang was chosen because of it high-performance and it's ease of parallelization.
+This project uses Golang. Golang was chosen for it's high-performance and it's ease of parallelization.
 
 ```
 This project was written and tested on Go 1.8
@@ -41,5 +41,5 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* Peter Given for being my FYP Supervisor 
-* [Swirlds&#169;](http://www.swirlds.com/) for their Consensus Algorithm
+* Peter Given - FYP Supervisor 
+* [Swirlds&#169;](http://www.swirlds.com/) - Consensus Algorithm
