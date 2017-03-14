@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -24,20 +25,37 @@ var order = make(map[string][]*string)
 
 var Hashgraph = make(map[string]Event)
 var transactions []Transaction
-var head string
+var Head string
 
 func Run() {
-	createTransaction(0, "127.0.0.1", "example.com")
+	//createTransaction(0, "127.0.0.1", "example.com")
 	sig, e := createEvent("0", "0")
 	addEvent(sig, e)
 
 	go StartListening()
 
 	for i := 0; i < 5; i++ {
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 2)
 		Gossip()
+		fmt.Println(len(Hashgraph))
 	}
 
+	b, err := json.MarshalIndent(Hashgraph, "", "  ")
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fmt.Print(string(b))
+
+}
+
+func ParseEvents(event Events) {
+	for k, v := range event.EventList {
+		if VerifySignature(Network[v.Creator].PublicKey, k, v.toString()) { // Valid signature of event
+			addEvent(k, v)
+		}
+	}
+	sig, e := createEvent(Head, event.Head)
+	addEvent(sig, e)
 }
 
 func CollectEventsToSend(eventCounts map[string]int) map[string]Event {
@@ -88,7 +106,7 @@ func createEvent(selfParent string, otherParent string) (string, Event) { // (ev
 
 func addEvent(sig string, e Event) {
 	if e.Creator == Self.toString() {
-		head = sig
+		Head = sig
 	}
 	order[e.Creator] = append(order[e.Creator], &sig)
 	Hashgraph[sig] = e

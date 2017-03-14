@@ -36,6 +36,7 @@ type EventCount struct {
 }
 
 type Events struct {
+	Head      string
 	EventList map[string]Event
 }
 
@@ -97,7 +98,7 @@ func handleConn(conn net.Conn) {
 		if ok {
 			e := CollectEventsToSend(message.Count)
 
-			sendMessage(Message{Self, 2, Events{e}}, data.Address)
+			sendMessage(Message{Self, 2, Events{Head, e}}, data.Address)
 		}
 		break
 
@@ -105,9 +106,7 @@ func handleConn(conn net.Conn) {
 		message, ok := data.Data.(Events)
 		fmt.Println("Received Events")
 		if ok {
-			fmt.Println(message)
-			//TODO
-			// Verify Signature, Add to own hashgraph
+			ParseEvents(message)
 		}
 		break
 	}

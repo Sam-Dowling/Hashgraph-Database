@@ -42,8 +42,6 @@ func VerifySignature(pubKey rsa.PublicKey, signature string, data string) bool {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	ok := rsa.VerifyPKCS1v15(&pubKey, crypto.SHA256, d, sigBytes)
-
-	return ok == nil
+	return rsa.VerifyPKCS1v15(&pubKey, crypto.SHA256, d, sigBytes) == nil //no error == valid signature
 
 }
