@@ -1,14 +1,13 @@
 package main
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 )
 
 type Transaction struct {
 	Timestamp time.Time
-	Action    int // 0:create, 1:read, 2:update
 	Key       string
 	Value     string
 }
@@ -27,9 +26,10 @@ var Hashgraph = make(map[string]Event)
 var transactions []Transaction
 var Head string
 
+// Main Running Function
 func Run() {
 	//createTransaction(0, "127.0.0.1", "example.com")
-	sig, e := createEvent("0", "0")
+	sig, e := createEvent("0", "0") // create Root Event
 	addEvent(sig, e)
 
 	go StartListening()
@@ -37,16 +37,11 @@ func Run() {
 	for i := 0; i < 5; i++ {
 		time.Sleep(time.Second * 2)
 		Gossip()
-		fmt.Println(len(Hashgraph))
 	}
-
-	b, err := json.MarshalIndent(Hashgraph, "", "  ")
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Print(string(b))
 
 }
+
+// SYNC Functions
 
 func ParseEvents(event Events) {
 	for k, v := range event.EventList {
@@ -93,9 +88,30 @@ func (e Event) toString() string {
 	return fmt.Sprintf("%v", e)
 }
 
-func createTransaction(action int, key string, value string) {
-	transactions = append(transactions, Transaction{time.Now(), action, key, value})
+// Transaction Functions
+
+func createTransaction(key string, value string) {
+	transactions = append(transactions, Transaction{time.Now(), key, value})
 }
+
+func getTransaction(key string) (Transaction, error) {
+	var latestTime time.Time
+	var latestValue Transaction
+	for _, v := range Hashgraph {
+		for t := range v.Transactions {
+			if v.Transactions[t].Key == key && v.Transactions[t].Timestamp.After(latestTime) {
+				latestValue = v.Transactions[t]
+			}
+		}
+	}
+
+	if latestValue == (Transaction{}) {
+		return Transaction{}, errors.New("Key not Found")
+	}
+	return latestValue, nil
+}
+
+// Event Functions
 
 func createEvent(selfParent string, otherParent string) (string, Event) { // (events signature, event)
 	e := Event{Self.toString(), time.Now(), transactions, selfParent, otherParent}
@@ -111,3 +127,5 @@ func addEvent(sig string, e Event) {
 	order[e.Creator] = append(order[e.Creator], &sig)
 	Hashgraph[sig] = e
 }
+
+// Consensus Functions
