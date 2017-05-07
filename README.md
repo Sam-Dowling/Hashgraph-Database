@@ -13,7 +13,9 @@ This system negates the need for proof-of-work but keeps all the benefits and al
 ### What's a Hashgraph?
 
 A Hashgraph is a data structure that records who gossiped to whom, and in what order.
-Gossping; in the context is where one node selected another node at random and they both synchronize their hasgraphs with each other.
+Gossping; in this context is where one node selects another node at random and they both synchronize their Hashgraphs with each other.
+
+![hashgraph](http://i.imgur.com/RQ6Py44.png)
 
 ### What's a Consensus Algorithm?
 
