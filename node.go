@@ -28,7 +28,7 @@ var Head string
 
 // Main Running Function
 func Run() {
-	//createTransaction(0, "127.0.0.1", "example.com")
+	createTransaction(0, "127.0.0.1", "example.com")
 	sig, e := createEvent("0", "0") // create Root Event
 	addEvent(sig, e)
 
@@ -36,6 +36,7 @@ func Run() {
 
 	for i := 0; i < 5; i++ {
 		time.Sleep(time.Second * 2)
+		fmt.Println(GetEventCounts())
 		Gossip()
 	}
 
